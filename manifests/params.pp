@@ -5,8 +5,29 @@
 class cobbler::params {
   case $::osfamily {
     'RedHat': {
-      $service_name = 'cobblerd'
-      $package_name = 'cobbler'
+      $service_name       = 'cobblerd'
+      $package_name        = 'cobbler'
+      $package_name_web    = 'cobbler-web'
+      $tftp_package        = 'tftp-server'
+      $syslinux_package    = 'syslinux'
+      $http_config_prefix  = '/etc/httpd/conf.d'
+      $proxy_config_prefix = '/etc/httpd/conf.d'
+      $distro_path         = '/distro'
+      $apache_service      = 'httpd'
+      $default_kickstart   = '/var/lib/cobbler/kickstarts/default.ks'
+    }
+    'Debian': {
+      $service_name        = 'cobbler'
+      $package_name        = 'cobbler'
+      $package_name_web    = 'cobbler-web'
+      $tftp_package        = 'tftpd-hpa'
+      $syslinux_package    = 'syslinux'
+      $http_config_prefix  = '/etc/apache2/conf.d'
+      # This is a silly Debian/Ubuntu hack
+      $proxy_config_prefix = '/etc/apache2/sites-enabled'
+      $distro_path         = '/var/lib/cobbler'
+      $apache_service      = 'apache2'
+      $default_kickstart   = '/var/lib/cobbler/kickstarts/ubuntu-server.preseed'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} currently only supports osfamily RedHat")
@@ -17,7 +38,6 @@ class cobbler::params {
   # general settings
   $next_server_ip = $::ipaddress
   $server_ip      = $::ipaddress
-  $distro_path    = '/distro'
   $nameservers    = '127.0.0.1'
 
   # default root password for kickstart files
@@ -43,9 +63,11 @@ class cobbler::params {
   $remove_old_puppet_certs_automatically = 1
 
   # depends on apache
-  $apache_service = 'httpd'
   # access, regulated through Proxy directive
   $allow_access = "${server_ip} ${::ipaddress} 127.0.0.1"
+
+  # authorization
+  $auth_module = 'authn_denyall'
 
   # purge resources that are not defined
   $purge_distro  = true
