@@ -19,7 +19,7 @@
 # https://fedorahosted.org/cobbler/wiki/CobblerWithLdap
 
 [authentication]
-module = authn_denyall
+module = <%= auth_module %>
 
 # authorization: 
 # once a user has been cleared by the WebUI/XMLRPC, what can they do?
