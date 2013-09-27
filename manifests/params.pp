@@ -5,20 +5,22 @@
 class cobbler::params {
   case $::osfamily {
     'RedHat': {
-      $service_name       = 'cobblerd'
+      $service_name        = 'cobblerd'
       $package_name        = 'cobbler'
+      $settings_file       = '/etc/cobbler/settings'
       $package_name_web    = 'cobbler-web'
       $tftp_package        = 'tftp-server'
       $syslinux_package    = 'syslinux'
       $http_config_prefix  = '/etc/httpd/conf.d'
       $proxy_config_prefix = '/etc/httpd/conf.d'
-      $distro_path         = '/distro'
+      $distro_path         = '/var/www/cobbler/ks_mirror'
       $apache_service      = 'httpd'
       $default_kickstart   = '/var/lib/cobbler/kickstarts/default.ks'
     }
     'Debian': {
       $service_name        = 'cobbler'
       $package_name        = 'cobbler'
+      $settings_file       = '/etc/cobbler/settings'
       $package_name_web    = 'cobbler-web'
       $tftp_package        = 'tftpd-hpa'
       $syslinux_package    = 'syslinux'
@@ -52,7 +54,7 @@ class cobbler::params {
   $dhcp_interfaces    = 'eth0'
   $dhcp_subnets       = ''
   $dhcp_dynamic_range = 0
-
+  $dhcp_template      = 'cobbler/dhcp.template.erb'
   # dns options
   $manage_dns = 0
   $dns_option = 'dnsmasq'

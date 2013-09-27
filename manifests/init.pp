@@ -95,6 +95,7 @@
 class cobbler (
   $service_name       = $::cobbler::params::service_name,
   $package_name       = $::cobbler::params::package_name,
+  $settings_file      = $::cobbler::params::settings_file,
   $package_ensure     = $::cobbler::params::package_ensure,
   $distro_path        = $::cobbler::params::distro_path,
   $manage_dhcp        = $::cobbler::params::manage_dhcp,
@@ -109,6 +110,7 @@ class cobbler (
   $nameservers        = $::cobbler::params::nameservers,
   $dhcp_interfaces    = $::cobbler::params::dhcp_interfaces,
   $dhcp_subnets       = $::cobbler::params::dhcp_subnets,
+  $dhcp_template      = $::cobbler::params::dhcp_template,
   $defaultrootpw      = $::cobbler::params::defaultrootpw,
   $apache_service     = $::cobbler::params::apache_service,
   $allow_access       = $::cobbler::params::allow_access,
@@ -118,7 +120,10 @@ class cobbler (
   $purge_system       = $::cobbler::params::purge_system,
   $default_kickstart  = $::cobbler::params::default_kickstart,
   $webroot            = $::cobbler::params::webroot,
-  $auth_module        = $::cobbler::params::auth_module
+  $auth_module        = $::cobbler::params::auth_module,
+  $puppet_auto_setup  = $::cobbler::params::puppet_auto_setup,
+  $sign_puppet_certs_automatically = $::cobbler::params::sign_puppet_certs_automatically,
+  $remove_old_puppet_certs_automatically = $::cobbler::params::remove_old_puppet_certs_automatically
 ) inherits cobbler::params {
 
   # require apache modules
@@ -160,11 +165,27 @@ class cobbler (
     ensure => directory,
     mode   => '0755',
   }
-  file { '/etc/cobbler/settings':
-    content => template('cobbler/settings.erb'),
+
+  augeas {'cobbler_settings':
+    context => "/files/$settings_file",
+    lens    => 'CobblerSettings.lns',
+    incl    => $settings_file,
+    changes => [
+                "set default_kickstart $default_kickstart",
+                "set puppet_auto_setup $puppet_auto_setup",
+                "set sign_puppet_certs_automatically $sign_puppet_certs_automatically",
+                "set remove_old_puppet_certs_automatically $remove_old_puppet_certs_automatically",
+                "set manage_dns $manage_dns",
+                "set manage_tftpd $manage_tftpd",
+                "set manage_dhcp $manage_dhcp",
+                "set next_server_ip $next_server_ip",
+                "set server_ip $server_ip",
+                "set default_password_crypted $defaultrootpw"
+                ],
     require => Package[$package_name],
     notify  => Service[$service_name],
   }
+
   file { '/etc/cobbler/modules.conf':
     content => template('cobbler/modules.conf.erb'),
     require => Package[$package_name],
@@ -178,6 +199,8 @@ class cobbler (
     command     => '/usr/bin/cobbler sync',
     refreshonly => true,
   }
+
+  Service [$service_name] -> Exec ['cobblersync']
 
   # purge resources
   if $purge_distro == true {
@@ -200,14 +223,18 @@ class cobbler (
     }
     service { 'dhcpd':
       ensure  => running,
-      require => Package['dhcp'],
+      require => [Package['dhcp'],
+                  Augeas['cobbler_settings'],
+                  File ['/etc/cobbler/dhcp.template'],
+                  ],
+      
     }
-    file { '/etc/cobbler/dhcp.template':
+    file {'/etc/cobbler/dhcp.template':
       ensure  => present,
       owner   => root,
       group   => root,
       mode    => '0644',
-      content => template('cobbler/dhcp.template.erb'),
+      content => template($dhcp_template),
       require => Package[$package_name],
       notify  => Exec['cobblersync'],
     }
