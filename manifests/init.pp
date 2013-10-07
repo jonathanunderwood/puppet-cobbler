@@ -110,7 +110,9 @@ class cobbler (
   $nameservers        = $::cobbler::params::nameservers,
   $dhcp_interfaces    = $::cobbler::params::dhcp_interfaces,
   $dhcp_subnets       = $::cobbler::params::dhcp_subnets,
+  $dhcp_subnets_advanced = $::cobbler::params::dhcp_subnets_advanced,
   $dhcp_template      = $::cobbler::params::dhcp_template,
+  $dhcp_include_files = $::cobbler::params::dhcp_include_files,
   $defaultrootpw      = $::cobbler::params::defaultrootpw,
   $apache_service     = $::cobbler::params::apache_service,
   $allow_access       = $::cobbler::params::allow_access,
@@ -238,6 +240,8 @@ class cobbler (
       require => Package[$package_name],
       notify  => Exec['cobblersync'],
     }
+    
+    Exec['cobblersync'] -> Service['dhcpd']
   }
 
   # logrotate script

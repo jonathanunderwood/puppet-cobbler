@@ -18,6 +18,9 @@ allow bootp;
 ignore client-updates;
 set vendorclass = option vendor-class-identifier;
 
+option pxe-system-type code 93 = unsigned integer 16;
+
+<% if @dhcp_interfaces != '' -%>
 <% @dhcp_interfaces.each do |iface| -%>
 subnet <%= instance_variable_get("@ipaddress_#{iface}").match(/\d+\.\d+\.\d+/) %>.0 netmask 255.255.255.0 {
     option domain-name          "<%= @domain %>";
@@ -38,6 +41,8 @@ end %>;
     next-server                 $next_server;
 }
 <% end -%>
+<% end -%>
+
 <% if @dhcp_subnets != '' -%>
 <% @dhcp_subnets.each do |dhcp_subnet| -%>
 <% dhcp_subnet_split   = dhcp_subnet.split('/') -%>
@@ -61,6 +66,44 @@ end %>;
 <% end -%>
 <% end -%>
 
+<% if @dhcp_subnets_advanced != '' -%>
+<% @dhcp_subnets_advanced.each_pair do |key, dhcp_subnet| -%>
+subnet <%= dhcp_subnet['subnet'] %> netmask <%= dhcp_subnet['netmask'] %> {
+    option domain-name          "<%= @domain %>";
+    option subnet-mask          <%= dhcp_subnet['netmask'] %>;
+    <%- if has_variable?(dhcp_subnet['nameservers']) -%>
+    option domain-name-servers  <%= dhcp_subnet['nameservers'] %>;
+    <%- else -%>
+    option domain-name-servers  127.0.0.1;
+    <%- end -%>
+    option routers              <%= dhcp_subnet['routers'] %>;
+    default-lease-time          21600;
+    max-lease-time              43200;
+    next-server                 $next_server;
+    class "pxeclients" {
+         match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+         if option pxe-system-type = 00:02 {
+                 filename "ia64/elilo.efi";
+         } else if option pxe-system-type = 00:06 {
+                 filename "grub/grub-x86.efi";
+         } else if option pxe-system-type = 00:07 {
+                 filename "grub/grub-x86_64.efi";
+         } else {
+                 filename "pxelinux.0";
+         }
+    }
+
+}
+<% end -%>
+<% end -%>
+
+
+<% if @dhcp_include_files != '' -%>
+<% @dhcp_include_files.each do |file| -%>
+include "<%= file %>";
+<% end -%>
+<% end -%>
+
 #for dhcp_tag in $dhcp_tags.keys():
     ## group could be subnet if your dhcp tags line up with your subnets
     ## or really any valid dhcpd.conf construct ... if you only use the
@@ -78,13 +121,23 @@ group {
         #if $iface.hostname:
         option host-name "$iface.hostname";
         #end if
-        #if $iface.subnet:
-        option subnet-mask $iface.subnet;
+        #if $iface.netmask:
+        option subnet-mask $iface.netmask;
         #end if
         #if $iface.gateway:
         option routers $iface.gateway;
         #end if
+        #if $iface.enable_gpxe:
+        if exists user-class and option user-class = "gPXE" {
+            filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+        } else if exists user-class and option user-class = "iPXE" {
+            filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+        } else {
+            filename "undionly.kpxe";
+        }
+        #else
         filename "$iface.filename";
+        #end if
         ## Cobbler defaults to $next_server, but some users
         ## may like to use $iface.system.server for proxied setups
         next-server $next_server;

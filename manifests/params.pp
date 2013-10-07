@@ -51,8 +51,10 @@ class cobbler::params {
   # dhcp options
   $manage_dhcp        = 0
   $dhcp_option        = 'isc'
-  $dhcp_interfaces    = 'eth0'
+  $dhcp_interfaces    = ''
   $dhcp_subnets       = ''
+  $dhcp_subnets_advanced = ''
+  $dhcp_include_files = ''
   $dhcp_dynamic_range = 0
   $dhcp_template      = 'cobbler/dhcp.template.erb'
   # dns options
