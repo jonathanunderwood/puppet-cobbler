@@ -61,6 +61,9 @@ class cobbler::params {
   $manage_dns = 0
   $dns_option = 'dnsmasq'
 
+  # selinux settings
+  $manage_selinux_bools = false
+  
   # tftpd options
   $manage_tftpd = 1
   $tftpd_option = 'in_tftpd'

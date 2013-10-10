@@ -125,8 +125,9 @@ class cobbler (
   $auth_module        = $::cobbler::params::auth_module,
   $puppet_auto_setup  = $::cobbler::params::puppet_auto_setup,
   $sign_puppet_certs_automatically = $::cobbler::params::sign_puppet_certs_automatically,
-  $remove_old_puppet_certs_automatically = $::cobbler::params::remove_old_puppet_certs_automatically
-) inherits cobbler::params {
+  $remove_old_puppet_certs_automatically = $::cobbler::params::remove_old_puppet_certs_automatically,
+  $manage_selinux_bools = $::cobbler::params::manage_selinux_bools
+  ) inherits cobbler::params {
 
   # require apache modules
   include ::apache
@@ -168,6 +169,20 @@ class cobbler (
     mode   => '0755',
   }
 
+  # SELinux booleans
+  if $manage_selinux_bools == true {
+    $bools = ['cobbler_anon_write',
+              'cobbler_can_network_connect',
+              'cobbler_use_cifs',
+              'cobbler_use_nfs',
+              'httpd_can_network_connect_cobbler',
+              ]
+    selboolean {$bools:
+      persistent => true,
+      value      => on,
+    }
+  }
+  
   augeas {'cobbler_settings':
     context => "/files/$settings_file",
     lens    => 'CobblerSettings.lns',
