@@ -126,6 +126,7 @@ class cobbler (
   include ::apache::mod::wsgi
   include ::apache::mod::proxy
   include ::apache::mod::proxy_http
+  include ::apache::mod::setenvif
 
   # install section
   package { $::cobbler::params::tftp_package:     ensure => present, }
