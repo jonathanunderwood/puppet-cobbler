@@ -128,6 +128,16 @@ class cobbler (
   $remove_old_puppet_certs_automatically = $::cobbler::params::remove_old_puppet_certs_automatically,
   $manage_selinux_bools = $::cobbler::params::manage_selinux_bools
   ) inherits cobbler::params {
+  # Make custom types auto require cobbler service and apache service
+  Service[$cobbler::apache_service] -> Cobblerdistro <| |>
+  Service[$cobbler::apache_service] -> Cobblerrepo <| |>
+  Service[$cobbler::apache_service] -> Cobblersystem <| |>
+  Service[$cobbler::apache_service] -> Cobblerprofile <| |>
+  
+  Service[$cobbler::service_name] -> Cobblerdistro <| |>
+  Service[$cobbler::service_name] -> Cobblerrepo <| |>
+  Service[$cobbler::service_name] -> Cobblersystem <| |>
+  Service[$cobbler::service_name] -> Cobblerprofile <| |>
 
   # require apache modules
   include ::apache
