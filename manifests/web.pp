@@ -10,7 +10,6 @@
 class cobbler::web (
   $package_ensure = $cobbler::package_ensure,
 ) inherits cobbler {
-  require apache::mod::ssl
 
   package { $::cobbler::params::package_name_web:
     ensure => $package_ensure,
@@ -20,6 +19,6 @@ class cobbler::web (
     owner   => root,
     group   => root,
     mode    => '0644',
-    require => [ Package[$::cobbler::params::package_name_web], Class['apache'], ],
+    require => Package[$::cobbler::params::package_name_web],
   }
 }

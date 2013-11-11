@@ -139,13 +139,6 @@ class cobbler (
   Service[$cobbler::service_name] -> Cobblersystem <| |>
   Service[$cobbler::service_name] -> Cobblerprofile <| |>
 
-  # require apache modules
-  include ::apache
-  include ::apache::mod::wsgi
-  include ::apache::mod::proxy
-  include ::apache::mod::proxy_http
-  include ::apache::mod::setenvif
-
   # install section
   package { $::cobbler::params::tftp_package:     ensure => present, }
   package { $::cobbler::params::syslinux_package: ensure => present, }
