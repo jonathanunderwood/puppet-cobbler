@@ -71,7 +71,7 @@ end %>;
 subnet <%= dhcp_subnet['subnet'] %> netmask <%= dhcp_subnet['netmask'] %> {
     option domain-name          "<%= @domain %>";
     option subnet-mask          <%= dhcp_subnet['netmask'] %>;
-    <%- if has_variable?(dhcp_subnet['nameservers']) -%>
+    <%- if dhcp_subnet.key?('nameservers') -%>
     option domain-name-servers  <%= dhcp_subnet['nameservers'] %>;
     <%- else -%>
     option domain-name-servers  127.0.0.1;
