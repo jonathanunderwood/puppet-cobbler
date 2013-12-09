@@ -243,6 +243,7 @@ class cobbler (
       ensure => present,
     }
     service { 'dhcpd':
+      enable  => true,
       ensure  => running,
       require => [Package['dhcp'],
                   Augeas['cobbler_settings'],
